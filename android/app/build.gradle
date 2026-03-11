@@ -1,0 +1,18 @@
+android {
+    namespace = "com.reparapp.app"
+    compileSdk = 34
+
+    defaultConfig {
+        applicationId = "com.reparapp.app"
+        minSdk = 21
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0.0"
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.debug
+        }
+    }
+}
