@@ -5,13 +5,22 @@ Reparapp es una aplicación móvil para Android que permite a operarios (técnic
 
 ## Características de la Versión Beta
 
-### Pantalla de Login
+### 🔐 Pantalla de Login
 - Autenticación simple con email y contraseña
+- Soporte para dos roles: **Operario** y **Administrador**
+- Redirección automática según rol del usuario
 - Credenciales de demostración:
-  - Email: `juan@reparapp.es`
-  - Contraseña: `1234`
+  - **Operario**: juan@reparapp.es / 1234
+  - **Administrador**: admin@reparapp.es / 1234
 
-### Agenda/Calendario
+### 📱 Funcionalidades para Operarios
+
+#### Pantalla de Inicio
+- Acceso directo a agenda de tareas
+- Información del usuario logueado
+- Opción de cerrar sesión
+
+#### Agenda/Calendario
 - Vista de tareas (avisos) filtrada por fecha
 - Navegación entre fechas
 - Visualización del estado de cada tarea:
@@ -20,31 +29,49 @@ Reparapp es una aplicación móvil para Android que permite a operarios (técnic
   - **En curso** (púrpura): Tarea en ejecución
   - **Finalizado** (verde): Tarea completada
 
-### Detalle de Aviso
+#### Detalle de Aviso
 - Información del cliente (nombre, teléfono, dirección)
 - Detalles de la tarea (tipo, fecha, hora, descripción)
-- Cambio de estado de la tarea
+- Cambio de estado de la tarea en tiempo real
 - Captura de fotos mediante cámara del dispositivo
 - Selección de fotos desde la galería
 - Escritura de notas del trabajo realizado
 - Historial de documentos adjuntos
+- Visualización de estado actual del aviso
+
+### 👨‍💼 Funcionalidades para Administrador
+
+#### Panel de Control Administrativo
+- Acceso al dashboard principal
+- Navegación a gestión de avisos
+- Opción de cerrar sesión
+
+#### Gestión de Avisos
+- Visualización de todos los avisos en la plataforma
+- Filtrado dinámico por estados (todos, pendiente, en ruta, en curso, finalizado)
+- Visualización de detalles de cada aviso
+- Consulta del historial de documentos/fotos por aviso
+- Información del cliente y estado de tareas
 
 ## Estructura del Proyecto
 
 ```
 lib/
-├── main.dart                 # Punto de entrada
+├── main.dart                          # Punto de entrada - configuración de la app
 ├── models/
-│   ├── usuario.dart         # Modelo de Usuario
-│   ├── aviso.dart           # Modelo de Aviso/Tarea
-│   └── documento.dart       # Modelo de Documento/Foto
+│   ├── usuario.dart                   # Modelo de Usuario (con rol: operario/admin)
+│   ├── aviso.dart                     # Modelo de Aviso/Tarea
+│   └── documento.dart                 # Modelo de Documento/Foto adjunta
 ├── screens/
-│   ├── login_screen.dart    # Pantalla de autenticación
-│   ├── home_screen.dart     # Pantalla principal
-│   ├── agenda_screen.dart   # Calendario y lista de tareas
-│   └── aviso_detalle_screen.dart  # Detalle de tarea
+│   ├── login_screen.dart              # Pantalla de autenticación
+│   ├── home_screen.dart               # Pantalla principal (Operario)
+│   ├── agenda_screen.dart             # Calendario y lista de tareas (Operario)
+│   ├── aviso_detalle_screen.dart      # Detalle de tarea (Operario)
+│   ├── admin_home_screen.dart         # Panel principal (Administrador)
+│   ├── admin_avisos_list_screen.dart  # Lista de avisos con filtros (Administrador)
+│   └── admin_aviso_detalle_screen.dart # Detalle de aviso (Administrador)
 └── services/
-    └── api_service.dart     # Servicio de datos (mock)
+    └── api_service.dart               # Servicio de datos (mock) - datos simulados
 ```
 
 ## Instalación y Ejecución
@@ -81,23 +108,30 @@ flutter build apk --release
 - `intl`: Para formato de fechas
 - `provider`: Para gestión de estado (preparado para futuras versiones)
 
-## Notas Importantes para la Siguiente Entrega
+## Estado de Implementación
 
-- **Datos Mock**: Actualmente, la aplicación usa datos simulados. En la siguiente entrega, se conectará a una API real.
-- **Almacenamiento Local**: Las fotos se guardan localmente. Se requiere integración con servidor.
-- **Roles**: El rol de administrador está preparado pero sin funcionalidad en esta versión.
-- **Diseño**: Interfaz simplificada sin estilos complejos, como se solicitó.
+### ✅ Completado
+- Autenticación con dos roles (Operario y Administrador)
+- Interfaz de operario con agenda y detalles de aviso
+- Panel de administrador con visualización y filtrado de avisos
+- Captura de fotos y selección desde galería
+- Modelos de datos (Usuario, Aviso, Documento)
+- Servicio de datos mock para demostración
 
-## Credenciales de Demo
-- **Usuario Operario**: juan@reparapp.es / 1234
-- **Usuario Admin**: admin@reparapp.es / 1234
+### ⏳ Pendiente para Próximas Entregas
+- **Conexión a API REST real**: Reemplazar mock data por APIs
+- **Almacenamiento en servidor**: Las fotos se guardan localmente, requiere integración con servidor
+- **Panel de administrador avanzado**: Creación, edición y eliminación de avisos
+- **Sincronización en tiempo real**: WebSockets o Firebase
+- **Modo offline**: Almacenamiento local con sincronización posterior
+- **Mejoras visuales**: Estilos más avanzados y animaciones
 
-## Próximas Entregas
-- Conexión a API REST real
-- Panel de administrador funcional
-- Sincronización en tiempo real
-- Modo offline
-- Integración de base de datos en servidor
+## Notas Técnicas
+
+- **Datos Simulados**: Actualmente usa mock data para demostración
+- **Estado**: Preparado para integración con API real sin cambios mayores
+- **Diseño**: Interfaz simplificada y funcional como se solicitó
+- **Roles Implementados**: Sistema completo de bifurcación según rol del usuario
 - Mejoras visuales y estilos avanzados
 
 ---
