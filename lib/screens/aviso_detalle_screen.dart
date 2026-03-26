@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
+import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'package:reparapp/models/aviso.dart';
 import 'package:reparapp/models/documento.dart';
 import 'package:reparapp/services/api_service.dart';
 import 'package:intl/intl.dart';
+import 'package:signature/signature.dart';
 
 class AvisoDetalleScreen extends StatefulWidget {
   final Aviso aviso;
@@ -18,6 +19,7 @@ class AvisoDetalleScreen extends StatefulWidget {
 class _AvisoDetalleScreenState extends State<AvisoDetalleScreen> {
   late Aviso _aviso;
   late TextEditingController _notasController;
+  late SignatureController _signatureController;
   List<Documento> _documentos = [];
   bool _isLoadingDocs = false;
   bool _isChangingStatus = false;
@@ -27,6 +29,11 @@ class _AvisoDetalleScreenState extends State<AvisoDetalleScreen> {
     super.initState();
     _aviso = widget.aviso;
     _notasController = TextEditingController(text: _aviso.notas);
+    _signatureController = SignatureController(
+      penStrokeWidth: 5,
+      penColor: Colors.black,
+      exportBackgroundColor: Colors.white,
+    );
     _cargarDocumentos();
   }
 
@@ -125,6 +132,99 @@ class _AvisoDetalleScreenState extends State<AvisoDetalleScreen> {
           _isChangingStatus = false;
         });
       }
+    }
+  }
+
+  void _abrirDlgFirma() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Firma'),
+          content: SizedBox(
+            width: double.maxFinite,
+            height: 300,
+            child: Signature(
+              controller: _signatureController,
+              backgroundColor: Colors.grey[100]!,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                _signatureController.clear();
+              },
+              child: const Text('Borrar'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (_signatureController.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Por favor, realiza una firma')),
+                  );
+                  return;
+                }
+                
+                await _guardarFirma();
+                if (mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue[700],
+              ),
+              child: const Text(
+                'Confirmar',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _guardarFirma() async {
+    setState(() {
+      _isChangingStatus = true;
+    });
+    try {
+      final signature = await _signatureController.toPngBytes();
+      if (signature != null && mounted) {
+        final firmaBs64 = base64Encode(signature);
+        final success = await ApiService.actualizarFirmaAviso(
+          _aviso.id,
+          firmaBs64,
+        );
+        if (success && mounted) {
+          setState(() {
+            _aviso.firma = firmaBs64;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Firma guardada correctamente')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al guardar la firma')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isChangingStatus = false;
+        });
+      }
+      _signatureController.clear();
     }
   }
 
@@ -515,6 +615,56 @@ class _AvisoDetalleScreenState extends State<AvisoDetalleScreen> {
             ),
 
             const SizedBox(height: 24),
+
+            // Firma
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Firma',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _isChangingStatus ? null : _abrirDlgFirma,
+                      icon: const Icon(Icons.edit),
+                      label: Text(_aviso.firma.isNotEmpty 
+                          ? 'Modificar Firma' 
+                          : 'Realizar Firma'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue[700],
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                  if (_aviso.firma.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.green),
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.green[50],
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.check_circle, color: Colors.green[700], size: 24),
+                            const SizedBox(width: 8),
+                            const Text('Firma guardada', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -524,6 +674,7 @@ class _AvisoDetalleScreenState extends State<AvisoDetalleScreen> {
   @override
   void dispose() {
     _notasController.dispose();
+    _signatureController.dispose();
     super.dispose();
   }
 }

@@ -13,6 +13,7 @@ class Aviso {
   String telefonoCliente;
   int idOperario;
   String notas;
+  String firma;
 
   Aviso({
     required this.id,
@@ -27,6 +28,7 @@ class Aviso {
     required this.telefonoCliente,
     required this.idOperario,
     this.notas = '',
+    this.firma = '',
   });
 
   factory Aviso.fromJson(Map<String, dynamic> json) {
@@ -43,6 +45,7 @@ class Aviso {
       telefonoCliente: json['telefonoCliente'] ?? '',
       idOperario: json['idOperario'] ?? 0,
       notas: json['notas'] ?? '',
+      firma: json['firma'] ?? '',
     );
   }
 
@@ -58,6 +61,7 @@ class Aviso {
     'nombreCliente': nombreCliente,
     'telefonoCliente': telefonoCliente,
     'idOperario': idOperario,
+    'firma': firma,
     'notas': notas,
   };
 

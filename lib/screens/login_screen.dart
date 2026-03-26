@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:reparapp/services/api_service.dart';
-import 'package:reparapp/models/usuario.dart';
 import 'package:reparapp/screens/home_screen.dart';
+import 'package:reparapp/screens/admin_home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -36,10 +36,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (usuario != null) {
       if (mounted) {
+        // Dirigir a la pantalla correspondiente según su rol
+        final screenDestino = usuario.rol == 'admin' 
+            ? AdminHomeScreen(usuario: usuario)
+            : HomeScreen(usuario: usuario);
+        
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => HomeScreen(usuario: usuario),
+            builder: (context) => screenDestino,
           ),
         );
       }
@@ -88,7 +93,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: _emailController,
                 decoration: InputDecoration(
                   labelText: 'Email',
-                  hintText: 'juan@reparapp.es',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -154,12 +158,34 @@ class _LoginScreenState extends State<LoginScreen> {
                   border: Border.all(color: Colors.blue[200]!),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(
-                  'Demo: juan@reparapp.es / 1234',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.blue[700],
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Demo:',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.blue[700],
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Admin: admin@reparapp.es / 1234',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.blue[700],
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Operario: operario@reparapp.es / 1234',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.blue[700],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

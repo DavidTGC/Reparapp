@@ -7,14 +7,11 @@ Reparapp es una aplicación móvil para Android que permite a operarios (técnic
 
 ### Pantalla de Login
 - Autenticación simple con email y contraseña
-- Soporte para dos roles: **Operario** y **Administrador**
 - Credenciales de demostración:
-  - **Operario**: operario@reparapp.es / 1234
-  - **Administrador**: admin@reparapp.es / 1234
+  - Email: `juan@reparapp.es`
+  - Contraseña: `1234`
 
-### Funcionalidades Operario
-
-#### Agenda/Calendario
+### Agenda/Calendario
 - Vista de tareas (avisos) filtrada por fecha
 - Navegación entre fechas
 - Visualización del estado de cada tarea:
@@ -23,7 +20,7 @@ Reparapp es una aplicación móvil para Android que permite a operarios (técnic
   - **En curso** (púrpura): Tarea en ejecución
   - **Finalizado** (verde): Tarea completada
 
-#### Detalle de Aviso
+### Detalle de Aviso
 - Información del cliente (nombre, teléfono, dirección)
 - Detalles de la tarea (tipo, fecha, hora, descripción)
 - Cambio de estado de la tarea
@@ -32,37 +29,22 @@ Reparapp es una aplicación móvil para Android que permite a operarios (técnic
 - Escritura de notas del trabajo realizado
 - Historial de documentos adjuntos
 
-### Funcionalidades Administrador
-
-#### Panel de Control
-- Acceso al panel principal de administrador
-- Navegación a gestión de avisos
-
-#### Gestión de Avisos
-- Visualización de todos los avisos en la plataforma
-- Filtrado por estados (pendiente, en ruta, en curso, finalizado)
-- Visualización de detalles de cada aviso
-- Consulta del historial de documentos por aviso
-
 ## Estructura del Proyecto
 
 ```
 lib/
-├── main.dart                          # Punto de entrada
+├── main.dart                 # Punto de entrada
 ├── models/
-│   ├── usuario.dart                   # Modelo de Usuario
-│   ├── aviso.dart                     # Modelo de Aviso/Tarea
-│   └── documento.dart                 # Modelo de Documento/Foto
+│   ├── usuario.dart         # Modelo de Usuario
+│   ├── aviso.dart           # Modelo de Aviso/Tarea
+│   └── documento.dart       # Modelo de Documento/Foto
 ├── screens/
-│   ├── login_screen.dart              # Pantalla de autenticación
-│   ├── home_screen.dart               # Pantalla principal (Operario)
-│   ├── agenda_screen.dart             # Calendario y lista de tareas (Operario)
-│   ├── aviso_detalle_screen.dart      # Detalle de tarea (Operario)
-│   ├── admin_home_screen.dart         # Panel principal (Administrador)
-│   ├── admin_avisos_list_screen.dart  # Lista de avisos con filtros (Administrador)
-│   └── admin_aviso_detalle_screen.dart # Detalle de aviso (Administrador)
+│   ├── login_screen.dart    # Pantalla de autenticación
+│   ├── home_screen.dart     # Pantalla principal
+│   ├── agenda_screen.dart   # Calendario y lista de tareas
+│   └── aviso_detalle_screen.dart  # Detalle de tarea
 └── services/
-    └── api_service.dart               # Servicio de datos (mock)
+    └── api_service.dart     # Servicio de datos (mock)
 ```
 
 ## Instalación y Ejecución
@@ -103,9 +85,12 @@ flutter build apk --release
 
 - **Datos Mock**: Actualmente, la aplicación usa datos simulados. En la siguiente entrega, se conectará a una API real.
 - **Almacenamiento Local**: Las fotos se guardan localmente. Se requiere integración con servidor.
-- **Panel de Administrador**: Implementado con funcionalidades básicas de visualización y filtrado. Funcionalidades de creación y edición de avisos están pendientes.
-- **Sincronización en Tiempo Real**: Preparado para futuras versiones.
+- **Roles**: El rol de administrador está preparado pero sin funcionalidad en esta versión.
 - **Diseño**: Interfaz simplificada sin estilos complejos, como se solicitó.
+
+## Credenciales de Demo
+- **Usuario Operario**: juan@reparapp.es / 1234
+- **Usuario Admin**: admin@reparapp.es / 1234
 
 ## Próximas Entregas
 - Conexión a API REST real

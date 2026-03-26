@@ -9,7 +9,7 @@ class ApiService {
     Usuario(
       id: 1,
       nombre: 'Miguel Rodríguez',
-      email: 'juan@reparapp.es',
+      email: 'operario@reparapp.es',
       telefono: '656234567',
       rol: 'operario',
       password: '1234',
@@ -198,5 +198,23 @@ class ApiService {
     } catch (e) {
       return false;
     }
+  }
+
+  // Actualizar firma del aviso
+  static Future<bool> actualizarFirmaAviso(int idAviso, String firma) async {
+    await Future.delayed(Duration(milliseconds: 500));
+    try {
+      final aviso = _avisos.firstWhere((a) => a.id == idAviso);
+      aviso.firma = firma;
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Obtener TODOS los avisos (para admin)
+  static Future<List<Aviso>> getTodosLosAvisos() async {
+    await Future.delayed(Duration(milliseconds: 300));
+    return _avisos;
   }
 }
