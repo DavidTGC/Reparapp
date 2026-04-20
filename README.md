@@ -10,7 +10,7 @@ Reparapp es una aplicación móvil para Android que permite a operarios (técnic
 - Soporte para dos roles: **Operario** y **Administrador**
 - Redirección automática según rol del usuario
 - Credenciales de demostración:
-  - **Operario**: juan@reparapp.es / 1234
+  - **Operario**: operario@reparapp.es / 1234
   - **Administrador**: admin@reparapp.es / 1234
 
 ### 📱 Funcionalidades para Operarios
