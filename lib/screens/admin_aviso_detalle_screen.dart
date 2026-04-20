@@ -29,6 +29,7 @@ class _AdminAvisoDetalleScreenState extends State<AdminAvisoDetalleScreen> {
   List<Documento> _documentos = [];
   bool _isLoadingDocs = false;
   bool _isSaving = false;
+  List<Usuario> _operarios = [];
 
   DateTime _selectedDate = DateTime.now();
   late TimeOfDay _selectedTime;
@@ -65,11 +66,18 @@ class _AdminAvisoDetalleScreenState extends State<AdminAvisoDetalleScreen> {
   }
 
   Future<void> _cargarOperarios() async {
-    // En una versión real, esto se cargaría de la API
-    // Por ahora usaremos datos mock
-    setState(() {
-      // Aquí iría la carga de operarios
-    });
+    try {
+      final usuarios = await ApiService.getUsuarios();
+      setState(() {
+        _operarios = usuarios.where((u) => u.rol == 'operario').toList();
+        // Si el aviso no tiene operario asignado, asignar el primero de la lista
+        if (_operarios.isNotEmpty && (_aviso.idOperario == null || _aviso.idOperario == 0)) {
+          _aviso.idOperario = _operarios[0].id;
+        }
+      });
+    } catch (e) {
+      print('Error cargando operarios: $e');
+    }
   }
 
   Future<void> _guardarCambios() async {
@@ -356,28 +364,29 @@ class _AdminAvisoDetalleScreenState extends State<AdminAvisoDetalleScreen> {
                       border: Border.all(color: Colors.grey[400]!),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: DropdownButton<int>(
-                      isExpanded: true,
-                      value: _aviso.idOperario,
-                      items: const [
-                        DropdownMenuItem(
-                          value: 1,
-                          child: Text('Miguel Rodríguez'),
-                        ),
-                        DropdownMenuItem(
-                          value: 3,
-                          child: Text('Antonio Moreno'),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            _aviso.idOperario = value;
-                          });
-                        }
-                      },
-                      underline: const SizedBox(),
-                    ),
+                    child: _operarios.isEmpty
+                        ? const Padding(
+                            padding: EdgeInsets.all(12.0),
+                            child: Text('No hay operarios disponibles'),
+                          )
+                        : DropdownButton<int>(
+                            isExpanded: true,
+                            value: _aviso.idOperario,
+                            items: _operarios
+                                .map((operario) => DropdownMenuItem(
+                                      value: operario.id,
+                                      child: Text(operario.nombre),
+                                    ))
+                                .toList(),
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() {
+                                  _aviso.idOperario = value;
+                                });
+                              }
+                            },
+                            underline: const SizedBox(),
+                          ),
                   ),
 
                   const SizedBox(height: 24),
@@ -491,7 +500,6 @@ class _AdminAvisoDetalleScreenState extends State<AdminAvisoDetalleScreen> {
                             subtitle: Text(
                               DateFormat('dd/MM/yyyy HH:mm').format(doc.fechaSubida),
                             ),
-                            trailing: const Icon(Icons.check_circle, color: Colors.green),
                           ),
                         );
                       }).toList(),

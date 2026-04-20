@@ -1,220 +1,447 @@
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:reparapp/models/usuario.dart';
 import 'package:reparapp/models/aviso.dart';
 import 'package:reparapp/models/documento.dart';
 
 class ApiService {
-  // Mock data - En una versión final se conectaría a una API real
+  // URL base de la API PHP
+  // Para desarrollo web: asegúrate de que Flutter Web se sirve desde el mismo host/puerto que Apache
+  // O cambia aquí a la dirección IP real de tu servidor (ej: http://192.168.1.100/reparapp/backend/api)
+  static const String apiBaseUrl = 'http://localhost/reparapp/backend/api';
   
-  static final List<Usuario> _usuarios = [
-    Usuario(
-      id: 1,
-      nombre: 'Miguel Rodríguez',
-      email: 'operario@reparapp.es',
-      telefono: '656234567',
-      rol: 'operario',
-      password: '1234',
-    ),
-    Usuario(
-      id: 2,
-      nombre: 'Francisco Javier López',
-      email: 'admin@reparapp.es',
-      telefono: '655789123',
-      rol: 'admin',
-      password: '1234',
-    ),
-    Usuario(
-      id: 3,
-      nombre: 'Antonio Moreno',
-      email: 'antonio@reparapp.es',
-      telefono: '654123456',
-      rol: 'operario',
-      password: '1234',
-    ),
-  ];
-
-  static final List<Aviso> _avisos = [
-    Aviso(
-      id: 1,
-      titulo: 'Reparación fontanería',
-      descripcion: 'Fuga en baño principal, revisar tuberías',
-      direccion: 'Calle Larga 45, Jerez de la Frontera',
-      fecha: DateTime.now(),
-      hora: '09:00',
-      estado: 'pendiente',
-      tipoServicio: 'Fontanería',
-      nombreCliente: 'Rafael Díaz Martínez',
-      telefonoCliente: '956332145',
-      idOperario: 1,
-      notas: '',
-    ),
-    Aviso(
-      id: 2,
-      titulo: 'Instalación eléctrica',
-      descripcion: 'Instalación de toma de corriente en cocina',
-      direccion: 'Avenida Alcalde Álvaro Domecq 78, Jerez de la Frontera',
-      fecha: DateTime.now().add(Duration(days: 1)),
-      hora: '14:00',
-      estado: 'pendiente',
-      tipoServicio: 'Electricidad',
-      nombreCliente: 'Isabel Ruiz Fernández',
-      telefonoCliente: '956334512',
-      idOperario: 1,
-      notas: '',
-    ),
-    Aviso(
-      id: 3,
-      titulo: 'Desatasco de tuberías',
-      descripcion: 'Desatasco en el sifón del lavabo',
-      direccion: 'Calle Pizarro 23, Jerez de la Frontera',
-      fecha: DateTime.now().add(Duration(days: 2)),
-      hora: '10:30',
-      estado: 'en_curso',
-      tipoServicio: 'Desatascalia',
-      nombreCliente: 'José María Gómez',
-      telefonoCliente: '956445789',
-      idOperario: 1,
-      notas: '',
-    ),
-    Aviso(
-      id: 4,
-      titulo: 'Reparación calefacción',
-      descripcion: 'Revisar y reparar sistema de calefacción central',
-      direccion: 'Calle Nueva 56, Jerez de la Frontera',
-      fecha: DateTime.now().add(Duration(days: 3)),
-      hora: '11:00',
-      estado: 'pendiente',
-      tipoServicio: 'Calefacción',
-      nombreCliente: 'Carmen López Pérez',
-      telefonoCliente: '956667234',
-      idOperario: 1,
-      notas: '',
-    ),
-    Aviso(
-      id: 5,
-      titulo: 'Instalación sanitarios',
-      descripcion: 'Instalación de inodoro y lavabo en baño',
-      direccion: 'Calle Arcos 12, Jerez de la Frontera',
-      fecha: DateTime.now().add(Duration(days: 4)),
-      hora: '15:30',
-      estado: 'pendiente',
-      tipoServicio: 'Fontanería',
-      nombreCliente: 'Estela Rodríguez Silva',
-      telefonoCliente: '956778456',
-      idOperario: 1,
-      notas: '',
-    ),
-    Aviso(
-      id: 6,
-      titulo: 'Reparación puerta',
-      descripcion: 'Reparar cristal roto en puerta de balcón',
-      direccion: 'Calle Letrados 34, Jerez de la Frontera',
-      fecha: DateTime.now().add(Duration(days: 5)),
-      hora: '13:00',
-      estado: 'finalizado',
-      tipoServicio: 'Carpintería',
-      nombreCliente: 'Vicente Morales Domínguez',
-      telefonoCliente: '956889234',
-      idOperario: 1,
-      notas: '',
-    ),
-  ];
-
-  static final List<Documento> _documentos = [];
+  // URL base para recursos (imágenes, documentos)
+  // En web, esto debe ser accesible desde el mismo origen
+  static const String resourceBaseUrl = 'http://localhost/reparapp/backend';
+  
+  // Timeout para las peticiones HTTP
+  static const Duration timeoutDuration = Duration(seconds: 30);
+  
+  // Obtener URL completa para un recurso (imagen, documento)
+  static String getResourceUrl(String relativePath) {
+    // Si ya es una URL completa, devolverla tal cual
+    if (relativePath.startsWith('http')) {
+      return relativePath;
+    }
+    // Si es una ruta relativa, construir la URL completa
+    if (relativePath.startsWith('/')) {
+      return resourceBaseUrl + relativePath;
+    }
+    return '$resourceBaseUrl/$relativePath';
+  }
 
   // Método para autenticar usuario
   static Future<Usuario?> login(String email, String password) async {
-    await Future.delayed(Duration(milliseconds: 500)); // Simular delay de red
-    
     try {
-      final usuario = _usuarios.firstWhere(
-        (u) => u.email == email && u.password == password,
-      );
-      return usuario;
-    } catch (e) {
+      final response = await http.post(
+        Uri.parse('$apiBaseUrl/usuarios.php/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
+      ).timeout(timeoutDuration);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          return Usuario.fromJson(data['data']);
+        }
+      }
       return null;
+    } catch (e) {
+      print('Error en login: $e');
+      return null;
+    }
+  }
+
+  // Obtener todos los usuarios
+  static Future<List<Usuario>> getUsuarios() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$apiBaseUrl/usuarios.php/usuarios'),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(timeoutDuration);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          List<Usuario> usuarios = [];
+          for (var usuario in data['data']) {
+            usuarios.add(Usuario.fromJson(usuario));
+          }
+          return usuarios;
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Error obteniendo usuarios: $e');
+      return [];
     }
   }
 
   // Obtener avisos del operario
   static Future<List<Aviso>> getAvisosOperario(int idOperario) async {
-    await Future.delayed(Duration(milliseconds: 500));
-    return _avisos.where((aviso) => aviso.idOperario == idOperario).toList();
+    try {
+      final response = await http.get(
+        Uri.parse('$apiBaseUrl/avisos.php/avisos-por-operario?id_operario=$idOperario'),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(timeoutDuration);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          List<Aviso> avisos = [];
+          for (var aviso in data['data']) {
+            avisos.add(Aviso.fromJson(aviso));
+          }
+          return avisos;
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Error obteniendo avisos del operario: $e');
+      return [];
+    }
+  }
+
+  // Obtener TODOS los avisos (para admin)
+  static Future<List<Aviso>> getTodosLosAvisos() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$apiBaseUrl/avisos.php/avisos'),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(timeoutDuration);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          List<Aviso> avisos = [];
+          for (var aviso in data['data']) {
+            avisos.add(Aviso.fromJson(aviso));
+          }
+          return avisos;
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Error obteniendo todos los avisos: $e');
+      return [];
+    }
   }
 
   // Obtener detalle de aviso
   static Future<Aviso?> getAvisoDetalle(int idAviso) async {
-    await Future.delayed(Duration(milliseconds: 300));
     try {
-      return _avisos.firstWhere((aviso) => aviso.id == idAviso);
-    } catch (e) {
+      final response = await http.get(
+        Uri.parse('$apiBaseUrl/avisos.php/avisos?id=$idAviso'),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(timeoutDuration);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'].isNotEmpty) {
+          return Aviso.fromJson(data['data'][0]);
+        }
+      }
       return null;
+    } catch (e) {
+      print('Error obteniendo detalle del aviso: $e');
+      return null;
+    }
+  }
+
+  // Crear nuevo aviso
+  static Future<bool> crearAviso(Aviso aviso) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$apiBaseUrl/avisos.php/avisos'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'titulo': aviso.titulo,
+          'descripcion': aviso.descripcion,
+          'direccion': aviso.direccion,
+          'fecha': aviso.fecha.toString().split(' ')[0],
+          'hora': aviso.hora,
+          'estado': aviso.estado,
+          'tipoServicio': aviso.tipoServicio,
+          'nombreCliente': aviso.nombreCliente,
+          'telefonoCliente': aviso.telefonoCliente,
+          'id_operario': aviso.idOperario,
+          'notas': aviso.notas,
+        }),
+      ).timeout(timeoutDuration);
+
+      return response.statusCode == 201;
+    } catch (e) {
+      print('Error creando aviso: $e');
+      return false;
+    }
+  }
+
+  // Actualizar aviso
+  static Future<bool> actualizarAviso(Aviso aviso) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$apiBaseUrl/avisos.php/avisos'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'id': aviso.id,
+          'titulo': aviso.titulo,
+          'descripcion': aviso.descripcion,
+          'direccion': aviso.direccion,
+          'fecha': aviso.fecha.toString().split(' ')[0],
+          'hora': aviso.hora,
+          'estado': aviso.estado,
+          'tipoServicio': aviso.tipoServicio,
+          'nombreCliente': aviso.nombreCliente,
+          'telefonoCliente': aviso.telefonoCliente,
+          'notas': aviso.notas,
+          'firma': aviso.firma,
+        }),
+      ).timeout(timeoutDuration);
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error actualizando aviso: $e');
+      return false;
     }
   }
 
   // Actualizar notas del aviso
   static Future<bool> actualizarNotasAviso(int idAviso, String notas) async {
-    await Future.delayed(Duration(milliseconds: 500));
     try {
-      final aviso = _avisos.firstWhere((a) => a.id == idAviso);
-      aviso.notas = notas;
-      return true;
+      final response = await http.put(
+        Uri.parse('$apiBaseUrl/avisos.php/avisos'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'id': idAviso,
+          'notas': notas,
+        }),
+      ).timeout(timeoutDuration);
+
+      return response.statusCode == 200;
     } catch (e) {
+      print('Error actualizando notas: $e');
       return false;
     }
   }
 
   // Cambiar estado del aviso
   static Future<bool> cambiarEstadoAviso(int idAviso, String nuevoEstado) async {
-    await Future.delayed(Duration(milliseconds: 500));
     try {
-      final aviso = _avisos.firstWhere((a) => a.id == idAviso);
-      aviso.estado = nuevoEstado;
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
+      final response = await http.put(
+        Uri.parse('$apiBaseUrl/avisos.php/avisos'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'id': idAviso,
+          'estado': nuevoEstado,
+        }),
+      ).timeout(timeoutDuration);
 
-  // Obtener documentos del aviso
-  static Future<List<Documento>> getDocumentosAviso(int idAviso) async {
-    await Future.delayed(Duration(milliseconds: 300));
-    return _documentos.where((doc) => doc.idAviso == idAviso).toList();
-  }
-
-  // Agregar documento (foto) al aviso
-  static Future<bool> agregarDocumento(int idAviso, String ruta, String tipo) async {
-    await Future.delayed(Duration(milliseconds: 500));
-    try {
-      final nuevoDoc = Documento(
-        id: _documentos.length + 1,
-        idAviso: idAviso,
-        tipo: tipo,
-        ruta: ruta,
-        nombre: 'Foto_${DateTime.now().millisecondsSinceEpoch}.jpg',
-        fechaSubida: DateTime.now(),
-      );
-      _documentos.add(nuevoDoc);
-      return true;
+      return response.statusCode == 200;
     } catch (e) {
+      print('Error cambiando estado del aviso: $e');
       return false;
     }
   }
 
   // Actualizar firma del aviso
   static Future<bool> actualizarFirmaAviso(int idAviso, String firma) async {
-    await Future.delayed(Duration(milliseconds: 500));
     try {
-      final aviso = _avisos.firstWhere((a) => a.id == idAviso);
-      aviso.firma = firma;
-      return true;
+      final response = await http.put(
+        Uri.parse('$apiBaseUrl/avisos.php/avisos'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'id': idAviso,
+          'firma': firma,
+        }),
+      ).timeout(timeoutDuration);
+
+      return response.statusCode == 200;
     } catch (e) {
+      print('Error actualizando firma: $e');
       return false;
     }
   }
 
-  // Obtener TODOS los avisos (para admin)
-  static Future<List<Aviso>> getTodosLosAvisos() async {
-    await Future.delayed(Duration(milliseconds: 300));
-    return _avisos;
+  // Obtener documentos del aviso
+  static Future<List<Documento>> getDocumentosAviso(int idAviso) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$apiBaseUrl/documentos.php/documentos-por-aviso?id_aviso=$idAviso'),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(timeoutDuration);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          List<Documento> documentos = [];
+          for (var doc in data['data']) {
+            documentos.add(Documento.fromJson(doc));
+          }
+          return documentos;
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Error obteniendo documentos: $e');
+      return [];
+    }
+  }
+
+  // Agregar documento (foto) al aviso - Soporta mobile y web
+  static Future<bool> agregarDocumento(int idAviso, dynamic archivoOBytes, String tipo) async {
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$apiBaseUrl/documentos.php/documentos'),
+      );
+
+      request.fields['id_aviso'] = idAviso.toString();
+      request.fields['tipo'] = tipo;
+
+      // Soportar tanto String (ruta) como bytes
+      if (archivoOBytes is String) {
+        // Es una ruta de archivo (mobile/desktop)
+        if (!kIsWeb) {
+          // Mobile: usar fromPath
+          request.files.add(
+            await http.MultipartFile.fromPath('archivo', archivoOBytes),
+          );
+        } else {
+          // Web: no podemos usar fromPath directamente
+          throw Exception(
+            'En web, debes pasar bytes directamente en lugar de una ruta de archivo'
+          );
+        }
+      } else if (archivoOBytes is List<int>) {
+        // Son bytes (funciona en web y mobile)
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'archivo',
+            archivoOBytes,
+            filename: 'documento.jpg',
+          ),
+        );
+      } else {
+        throw Exception('Formato de archivo no válido');
+      }
+
+      var response = await request.send().timeout(timeoutDuration);
+      return response.statusCode == 201;
+    } catch (e) {
+      print('Error subiendo documento: $e');
+      return false;
+    }
+  }
+
+  // Eliminar documento
+  static Future<bool> eliminarDocumento(int idDocumento) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$apiBaseUrl/documentos.php/documentos'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'id': idDocumento}),
+      ).timeout(timeoutDuration);
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error eliminando documento: $e');
+      return false;
+    }
+  }
+
+  // Crear nuevo usuario
+  static Future<bool> crearUsuario({
+    required String nombre,
+    required String email,
+    required String password,
+    required String telefono,
+    required String dni,
+    required String rol,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$apiBaseUrl/usuarios.php/usuarios'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'nombre': nombre,
+          'email': email,
+          'password': password,
+          'telefono': telefono,
+          'dni': dni,
+          'rol': rol,
+        }),
+      ).timeout(timeoutDuration);
+
+      return response.statusCode == 201;
+    } catch (e) {
+      print('Error creando usuario: $e');
+      return false;
+    }
+  }
+
+  // Actualizar usuario
+  static Future<bool> actualizarUsuario({
+    required int id,
+    required String nombre,
+    required String email,
+    required String telefono,
+    required String dni,
+    required String rol,
+  }) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$apiBaseUrl/usuarios.php/usuarios'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'id': id,
+          'nombre': nombre,
+          'email': email,
+          'telefono': telefono,
+          'dni': dni,
+          'rol': rol,
+        }),
+      ).timeout(timeoutDuration);
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error actualizando usuario: $e');
+      return false;
+    }
+  }
+
+  // Eliminar usuario
+  static Future<bool> eliminarUsuario(int id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$apiBaseUrl/usuarios.php/usuarios'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'id': id}),
+      ).timeout(timeoutDuration);
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error eliminando usuario: $e');
+      return false;
+    }
+  }
+
+  // Eliminar aviso
+  static Future<bool> eliminarAviso(int id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$apiBaseUrl/avisos.php/avisos'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'id': id}),
+      ).timeout(timeoutDuration);
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error eliminando aviso: $e');
+      return false;
+    }
   }
 }

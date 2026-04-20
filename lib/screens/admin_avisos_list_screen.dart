@@ -3,6 +3,7 @@ import 'package:reparapp/models/usuario.dart';
 import 'package:reparapp/models/aviso.dart';
 import 'package:reparapp/services/api_service.dart';
 import 'package:reparapp/screens/admin_aviso_detalle_screen.dart';
+import 'package:reparapp/screens/admin_crear_aviso_screen.dart';
 
 class AdminAvisosListScreen extends StatefulWidget {
   final Usuario usuario;
@@ -50,6 +51,57 @@ class _AdminAvisosListScreenState extends State<AdminAvisosListScreen> {
         return 'Finalizado';
       default:
         return estado;
+    }
+  }
+
+  Future<void> _eliminarAviso(Aviso aviso) async {
+    final confirmDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar Aviso'),
+        content: Text('¿Estás seguro de que deseas eliminar el aviso "${aviso.titulo}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmDelete == true) {
+      try {
+        final success = await ApiService.eliminarAviso(aviso.id);
+        if (success) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Aviso eliminado exitosamente'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            setState(() {
+              _avisosFuture = ApiService.getTodosLosAvisos();
+            });
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error al eliminar: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -175,18 +227,37 @@ class _AdminAvisosListScreenState extends State<AdminAvisosListScreen> {
                             ),
                           ],
                         ),
-                        trailing: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: _getColorEstado(aviso.estado).withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            _getEstadoTexto(aviso.estado),
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: _getColorEstado(aviso.estado),
+                        trailing: PopupMenuButton<String>(
+                          onSelected: (value) {
+                            if (value == 'eliminar') {
+                              _eliminarAviso(aviso);
+                            }
+                          },
+                          itemBuilder: (BuildContext context) => [
+                            PopupMenuItem<String>(
+                              value: 'eliminar',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete, color: Colors.red[700]),
+                                  const SizedBox(width: 8),
+                                  const Text('Eliminar'),
+                                ],
+                              ),
+                            ),
+                          ],
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: _getColorEstado(aviso.estado).withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              _getEstadoTexto(aviso.estado),
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: _getColorEstado(aviso.estado),
+                              ),
                             ),
                           ),
                         ),
@@ -202,10 +273,16 @@ class _AdminAvisosListScreenState extends State<AdminAvisosListScreen> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.deepOrange[700],
         onPressed: () {
-          // Crear nuevo aviso
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Crear nuevo aviso - Próximamente')),
-          );
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AdminCrearAvisoScreen(usuario: widget.usuario),
+            ),
+          ).then((_) {
+            setState(() {
+              _avisosFuture = ApiService.getTodosLosAvisos();
+            });
+          });
         },
         child: const Icon(Icons.add),
       ),

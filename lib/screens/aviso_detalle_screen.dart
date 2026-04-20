@@ -60,9 +60,11 @@ class _AvisoDetalleScreenState extends State<AvisoDetalleScreen> {
     try {
       final pickedFile = await picker.pickImage(source: ImageSource.camera);
       if (pickedFile != null) {
+        // Leer los bytes del archivo (funciona en web y mobile)
+        final bytes = await pickedFile.readAsBytes();
         final success = await ApiService.agregarDocumento(
           _aviso.id,
-          pickedFile.path,
+          bytes,
           'foto_durante',
         );
         if (success && mounted) {
@@ -75,7 +77,7 @@ class _AvisoDetalleScreenState extends State<AvisoDetalleScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error al capturar la foto')),
+          SnackBar(content: Text('Error al capturar la foto: $e')),
         );
       }
     }
@@ -87,9 +89,11 @@ class _AvisoDetalleScreenState extends State<AvisoDetalleScreen> {
       final pickedFiles = await picker.pickMultiImage();
       if (pickedFiles.isNotEmpty) {
         for (var pickedFile in pickedFiles) {
+          // Leer los bytes del archivo (funciona en web y mobile)
+          final bytes = await pickedFile.readAsBytes();
           await ApiService.agregarDocumento(
             _aviso.id,
-            pickedFile.path,
+            bytes,
             'foto_durante',
           );
         }
@@ -108,6 +112,8 @@ class _AvisoDetalleScreenState extends State<AvisoDetalleScreen> {
       }
     }
   }
+
+
 
   Future<void> _guardarNotas() async {
     setState(() {
@@ -555,7 +561,6 @@ class _AvisoDetalleScreenState extends State<AvisoDetalleScreen> {
                         subtitle: Text(
                           DateFormat('dd/MM/yyyy HH:mm').format(doc.fechaSubida),
                         ),
-                        trailing: const Icon(Icons.check_circle, color: Colors.green),
                       ),
                     );
                   }).toList(),

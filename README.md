@@ -136,5 +136,4 @@ flutter build apk --release
 
 ---
 
-Versión Beta - Marzo 2026
 Proyecto de Fin de Ciclo - Grado Superior DAM
