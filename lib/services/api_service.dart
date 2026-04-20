@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:reparapp/models/usuario.dart';
+import 'package:reparapp/models/cliente.dart';
 import 'package:reparapp/models/aviso.dart';
 import 'package:reparapp/models/documento.dart';
 
@@ -162,13 +163,14 @@ class ApiService {
           'titulo': aviso.titulo,
           'descripcion': aviso.descripcion,
           'direccion': aviso.direccion,
+          'ciudad': aviso.ciudad,
           'fecha': aviso.fecha.toString().split(' ')[0],
           'hora': aviso.hora,
           'estado': aviso.estado,
+          'prioridad': aviso.prioridad,
           'tipoServicio': aviso.tipoServicio,
-          'nombreCliente': aviso.nombreCliente,
-          'telefonoCliente': aviso.telefonoCliente,
-          'id_operario': aviso.idOperario,
+          'idCliente': aviso.idCliente,
+          'idOperario': aviso.idOperario,
           'notas': aviso.notas,
         }),
       ).timeout(timeoutDuration);
@@ -359,7 +361,6 @@ class ApiService {
     required String email,
     required String password,
     required String telefono,
-    required String dni,
     required String rol,
   }) async {
     try {
@@ -371,7 +372,6 @@ class ApiService {
           'email': email,
           'password': password,
           'telefono': telefono,
-          'dni': dni,
           'rol': rol,
         }),
       ).timeout(timeoutDuration);
@@ -389,7 +389,6 @@ class ApiService {
     required String nombre,
     required String email,
     required String telefono,
-    required String dni,
     required String rol,
   }) async {
     try {
@@ -401,7 +400,6 @@ class ApiService {
           'nombre': nombre,
           'email': email,
           'telefono': telefono,
-          'dni': dni,
           'rol': rol,
         }),
       ).timeout(timeoutDuration);
@@ -442,6 +440,57 @@ class ApiService {
     } catch (e) {
       print('Error eliminando aviso: $e');
       return false;
+    }
+  }
+
+  // Obtener lista de clientes
+  static Future<List<Cliente>> getClientes() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$apiBaseUrl/clientes.php/clientes'),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(timeoutDuration);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          List<Cliente> clientes = [];
+          for (var cliente in data['data']) {
+            clientes.add(Cliente.fromJson(cliente));
+          }
+          return clientes;
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Error obteniendo clientes: $e');
+      return [];
+    }
+  }
+
+  // Crear nuevo cliente
+  static Future<Cliente?> crearCliente(String nombre, String dni, String telefono) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$apiBaseUrl/clientes.php/clientes'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'nombre': nombre,
+          'dni': dni,
+          'telefono': telefono,
+        }),
+      ).timeout(timeoutDuration);
+
+      if (response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          return Cliente.fromJson(data['data']);
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Error creando cliente: $e');
+      return null;
     }
   }
 }

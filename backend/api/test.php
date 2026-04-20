@@ -12,7 +12,7 @@ echo json_encode([
 
 // Intentar conectar a MySQL
 if (file_exists('../config/database.php')) {
-    require_once '../config/database.php';
+    require_once '../database/database.php';
     
     if ($conn->connect_error) {
         echo json_encode(['error_mysql' => 'No se puede conectar a MySQL: ' . $conn->connect_error]);

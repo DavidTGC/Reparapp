@@ -1,7 +1,7 @@
 <?php
 // debug_usuarios.php - Endpoint para verificar que la BD funciona correctamente
 
-require_once '../config/database.php';
+require_once '../database/database.php';
 
 header('Content-Type: application/json; charset=utf-8');
 

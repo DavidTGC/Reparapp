@@ -1,5 +1,16 @@
 <?php
-require_once '../config/database.php';
+// CORS headers
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Content-Type: application/json');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+
+require_once '../database/database.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $request = explode('/', trim($_SERVER['PATH_INFO'] ?? '', '/'));
@@ -130,29 +141,34 @@ function createAviso() {
     global $conn;
     $data = json_decode(file_get_contents("php://input"), true);
 
-    if (!isset($data['titulo']) || !isset($data['fecha']) || !isset($data['id_operario'])) {
+    if (!isset($data['titulo']) || !isset($data['fecha'])) {
         http_response_code(400);
-        echo json_encode(['error' => 'Campos requeridos: titulo, fecha, id_operario']);
+        echo json_encode(['error' => 'Campos requeridos: titulo, fecha']);
         exit();
     }
 
     $titulo = $conn->real_escape_string($data['titulo']);
     $descripcion = $conn->real_escape_string($data['descripcion'] ?? '');
     $direccion = $conn->real_escape_string($data['direccion'] ?? '');
+    $ciudad = $conn->real_escape_string($data['ciudad'] ?? '');
     $fecha = $conn->real_escape_string($data['fecha']);
     $hora = $conn->real_escape_string($data['hora'] ?? '');
     $estado = $conn->real_escape_string($data['estado'] ?? 'pendiente');
+    $prioridad = $conn->real_escape_string($data['prioridad'] ?? 'media');
     $tipoServicio = $conn->real_escape_string($data['tipoServicio'] ?? '');
-    $nombreCliente = $conn->real_escape_string($data['nombreCliente'] ?? '');
-    $telefonoCliente = $conn->real_escape_string($data['telefonoCliente'] ?? '');
-    $idOperario = intval($data['id_operario']);
+    $idCliente = isset($data['idCliente']) ? intval($data['idCliente']) : 'NULL';
+    $idOperario = isset($data['idOperario']) ? intval($data['idOperario']) : 'NULL';
     $notas = $conn->real_escape_string($data['notas'] ?? '');
 
-    $query = "INSERT INTO avisos (titulo, descripcion, direccion, fecha, hora, estado, tipo_servicio, nombre_cliente, telefono_cliente, id_operario, notas) VALUES ('$titulo', '$descripcion', '$direccion', '$fecha', '$hora', '$estado', '$tipoServicio', '$nombreCliente', '$telefonoCliente', $idOperario, '$notas')";
+    $idClienteValue = is_numeric($idCliente) ? $idCliente : 'NULL';
+    $idOperarioValue = is_numeric($idOperario) ? $idOperario : 'NULL';
+
+    $query = "INSERT INTO avisos (titulo, descripcion, direccion, ciudad, fecha, hora, estado, prioridad, tipo_servicio, id_cliente, id_operario, notas) 
+              VALUES ('$titulo', '$descripcion', '$direccion', '$ciudad', '$fecha', '$hora', '$estado', '$prioridad', '$tipoServicio', $idClienteValue, $idOperarioValue, '$notas')";
 
     if ($conn->query($query)) {
         http_response_code(201);
-        echo json_encode(['success' => true, 'id' => $conn->insert_id]);
+        echo json_encode(['success' => true, 'id' => (int)$conn->insert_id]);
     } else {
         http_response_code(400);
         echo json_encode(['error' => 'Error al crear aviso: ' . $conn->error]);

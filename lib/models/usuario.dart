@@ -3,7 +3,6 @@ class Usuario {
   String nombre;
   String email;
   String telefono;
-  String dni;
   String rol; // 'admin' o 'operario'
   String password;
 
@@ -12,18 +11,16 @@ class Usuario {
     required this.nombre,
     required this.email,
     required this.telefono,
-    required this.dni,
     required this.rol,
     required this.password,
   });
 
   factory Usuario.fromJson(Map<String, dynamic> json) {
     return Usuario(
-      id: json['id'] ?? 0,
+      id: int.tryParse(json['id'].toString()) ?? 0,
       nombre: json['nombre'] ?? '',
       email: json['email'] ?? '',
       telefono: json['telefono'] ?? '',
-      dni: json['dni'] ?? '',
       rol: json['rol'] ?? 'operario',
       password: json['password'] ?? '',
     );
@@ -34,7 +31,6 @@ class Usuario {
     'nombre': nombre,
     'email': email,
     'telefono': telefono,
-    'dni': dni,
     'rol': rol,
     'password': password,
   };

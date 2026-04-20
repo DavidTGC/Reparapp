@@ -20,12 +20,15 @@ class _AdminCrearAvisoScreenState extends State<AdminCrearAvisoScreen> {
   late TextEditingController _descripcionController;
   late TextEditingController _direccionController;
   late TextEditingController _tipoServicioController;
-  late TextEditingController _nombreClienteController;
-  late TextEditingController _telefonoClienteController;
   late TextEditingController _horaController;
+  late TextEditingController _nombreClienteController;
+  late TextEditingController _dniClienteController;
+  late TextEditingController _telefonoClienteController;
 
   // Variables para el formulario
   DateTime _fechaSeleccionada = DateTime.now();
+  String _prioridadSeleccionada = 'media'; // 'baja', 'media', 'alta', 'urgente'
+  String _estadoSeleccionado = 'pendiente';
   int _operarioSeleccionado = 1;
   List<Usuario> _operarios = [];
   bool _cargando = false;
@@ -37,9 +40,10 @@ class _AdminCrearAvisoScreenState extends State<AdminCrearAvisoScreen> {
     _descripcionController = TextEditingController();
     _direccionController = TextEditingController();
     _tipoServicioController = TextEditingController();
-    _nombreClienteController = TextEditingController();
-    _telefonoClienteController = TextEditingController();
     _horaController = TextEditingController(text: '09:00');
+    _nombreClienteController = TextEditingController();
+    _dniClienteController = TextEditingController();
+    _telefonoClienteController = TextEditingController();
     
     _cargarOperarios();
   }
@@ -105,17 +109,39 @@ class _AdminCrearAvisoScreenState extends State<AdminCrearAvisoScreen> {
     setState(() => _cargando = true);
 
     try {
+      // 1. Crear cliente primero
+      final clienteCreado = await ApiService.crearCliente(
+        _nombreClienteController.text,
+        _dniClienteController.text,
+        _telefonoClienteController.text,
+      );
+
+      if (clienteCreado == null) {
+        setState(() => _cargando = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('❌ Error al crear el cliente'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // 2. Crear aviso con el ID del cliente
       final aviso = Aviso(
         id: 0, // El servidor asignará el ID
         titulo: _tituloController.text,
         descripcion: _descripcionController.text,
         direccion: _direccionController.text,
+        ciudad: _direccionController.text, // Usar dirección como ciudad
         fecha: _fechaSeleccionada,
         hora: _horaController.text,
-        estado: 'pendiente',
+        estado: _estadoSeleccionado,
+        prioridad: _prioridadSeleccionada,
         tipoServicio: _tipoServicioController.text,
-        nombreCliente: _nombreClienteController.text,
-        telefonoCliente: _telefonoClienteController.text,
+        nombreCliente: clienteCreado.nombre,
+        telefonoCliente: clienteCreado.telefono,
+        idCliente: clienteCreado.id,
         idOperario: _operarioSeleccionado,
         notas: '',
       );
@@ -157,9 +183,10 @@ class _AdminCrearAvisoScreenState extends State<AdminCrearAvisoScreen> {
     _descripcionController.dispose();
     _direccionController.dispose();
     _tipoServicioController.dispose();
-    _nombreClienteController.dispose();
-    _telefonoClienteController.dispose();
     _horaController.dispose();
+    _nombreClienteController.dispose();
+    _dniClienteController.dispose();
+    _telefonoClienteController.dispose();
     super.dispose();
   }
 
@@ -298,6 +325,25 @@ class _AdminCrearAvisoScreenState extends State<AdminCrearAvisoScreen> {
                     const SizedBox(height: 16),
 
                     TextFormField(
+                      controller: _dniClienteController,
+                      decoration: InputDecoration(
+                        labelText: 'DNI del Cliente',
+                        hintText: '12345678A',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        prefixIcon: const Icon(Icons.badge),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'El DNI es requerido';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    TextFormField(
                       controller: _telefonoClienteController,
                       decoration: InputDecoration(
                         labelText: 'Teléfono del Cliente',
@@ -313,6 +359,40 @@ class _AdminCrearAvisoScreenState extends State<AdminCrearAvisoScreen> {
                           return 'El teléfono es requerido';
                         }
                         return null;
+                      },
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Prioridad
+                    const Text(
+                      'Prioridad del Aviso',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepOrange,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    DropdownButtonFormField<String>(
+                      value: _prioridadSeleccionada,
+                      decoration: InputDecoration(
+                        labelText: 'Prioridad',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        prefixIcon: const Icon(Icons.priority_high),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 'baja', child: Text('Baja')),
+                        DropdownMenuItem(value: 'media', child: Text('Media')),
+                        DropdownMenuItem(value: 'alta', child: Text('Alta')),
+                        DropdownMenuItem(value: 'urgente', child: Text('Urgente')),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() => _prioridadSeleccionada = value);
+                        }
                       },
                     ),
                     const SizedBox(height: 24),

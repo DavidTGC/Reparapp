@@ -20,7 +20,6 @@ class _AdminCrearUsuarioScreenState extends State<AdminCrearUsuarioScreen> {
   late TextEditingController _nombreController;
   late TextEditingController _emailController;
   late TextEditingController _telefonoController;
-  late TextEditingController _dniController;
   late TextEditingController _passwordController;
   late TextEditingController _confirmPasswordController;
 
@@ -35,7 +34,6 @@ class _AdminCrearUsuarioScreenState extends State<AdminCrearUsuarioScreen> {
     _nombreController = TextEditingController();
     _emailController = TextEditingController();
     _telefonoController = TextEditingController();
-    _dniController = TextEditingController();
     _passwordController = TextEditingController();
     _confirmPasswordController = TextEditingController();
   }
@@ -45,7 +43,6 @@ class _AdminCrearUsuarioScreenState extends State<AdminCrearUsuarioScreen> {
     _nombreController.dispose();
     _emailController.dispose();
     _telefonoController.dispose();
-    _dniController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -74,7 +71,6 @@ class _AdminCrearUsuarioScreenState extends State<AdminCrearUsuarioScreen> {
         email: _emailController.text,
         password: _passwordController.text,
         telefono: _telefonoController.text,
-        dni: _dniController.text,
         rol: _rolSeleccionado,
       );
 
@@ -202,20 +198,6 @@ class _AdminCrearUsuarioScreenState extends State<AdminCrearUsuarioScreen> {
                     ),
                   ),
                   keyboardType: TextInputType.phone,
-                ),
-                const SizedBox(height: 16),
-
-                // Campo DNI
-                TextFormField(
-                  controller: _dniController,
-                  decoration: InputDecoration(
-                    labelText: 'DNI (Opcional)',
-                    hintText: 'Ej: 12345678A',
-                    prefixIcon: const Icon(Icons.badge),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
                 ),
                 const SizedBox(height: 16),
 

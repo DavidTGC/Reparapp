@@ -23,7 +23,6 @@ class _AdminEditarUsuarioScreenState extends State<AdminEditarUsuarioScreen> {
   late TextEditingController _nombreController;
   late TextEditingController _emailController;
   late TextEditingController _telefonoController;
-  late TextEditingController _dniController;
 
   late String _rolSeleccionado;
   bool _cargando = false;
@@ -35,7 +34,6 @@ class _AdminEditarUsuarioScreenState extends State<AdminEditarUsuarioScreen> {
     _nombreController = TextEditingController(text: widget.usuario.nombre);
     _emailController = TextEditingController(text: widget.usuario.email);
     _telefonoController = TextEditingController(text: widget.usuario.telefono ?? '');
-    _dniController = TextEditingController(text: widget.usuario.dni ?? '');
     _rolSeleccionado = widget.usuario.rol;
   }
 
@@ -44,7 +42,6 @@ class _AdminEditarUsuarioScreenState extends State<AdminEditarUsuarioScreen> {
     _nombreController.dispose();
     _emailController.dispose();
     _telefonoController.dispose();
-    _dniController.dispose();
     super.dispose();
   }
 
@@ -64,7 +61,6 @@ class _AdminEditarUsuarioScreenState extends State<AdminEditarUsuarioScreen> {
         nombre: _nombreController.text,
         email: _emailController.text,
         telefono: _telefonoController.text,
-        dni: _dniController.text,
         rol: _rolSeleccionado,
       );
 
@@ -189,19 +185,6 @@ class _AdminEditarUsuarioScreenState extends State<AdminEditarUsuarioScreen> {
                     ),
                   ),
                   keyboardType: TextInputType.phone,
-                ),
-                const SizedBox(height: 16),
-
-                // Campo DNI
-                TextFormField(
-                  controller: _dniController,
-                  decoration: InputDecoration(
-                    labelText: 'DNI',
-                    prefixIcon: const Icon(Icons.badge),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
                 ),
                 const SizedBox(height: 16),
 

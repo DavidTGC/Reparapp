@@ -1,5 +1,16 @@
 <?php
-require_once '../config/database.php';
+// CORS headers
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Content-Type: application/json');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+
+require_once '../database/database.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $request = explode('/', trim($_SERVER['PATH_INFO'] ?? '', '/'));
@@ -46,7 +57,7 @@ function handleLogin() {
     $email = $conn->real_escape_string($data['email']);
     $password = md5($data['password']);
 
-    $query = "SELECT id, nombre, email, telefono, dni, rol FROM usuarios WHERE email = '$email' AND password = '$password' AND activo = TRUE";
+    $query = "SELECT id, nombre, email, telefono, rol FROM usuarios WHERE email = '$email' AND password = '$password' AND activo = TRUE";
     $result = $conn->query($query);
 
     if (!$result) {
@@ -57,10 +68,9 @@ function handleLogin() {
 
     if ($result->num_rows > 0) {
         $usuario = $result->fetch_assoc();
-        // Convertir id a int, pero mantener telefono y dni como string
+        // Convertir id a int, mantener telefono como string
         $usuario['id'] = (int)$usuario['id'];
         $usuario['telefono'] = (string)$usuario['telefono'];
-        $usuario['dni'] = (string)$usuario['dni'];
         echo json_encode(['success' => true, 'data' => $usuario]);
     } else {
         http_response_code(401);
@@ -70,7 +80,7 @@ function handleLogin() {
 
 function getUsuarios() {
     global $conn;
-    $query = "SELECT id, nombre, email, telefono, dni, rol FROM usuarios WHERE activo = TRUE";
+    $query = "SELECT id, nombre, email, telefono, rol FROM usuarios WHERE activo = TRUE";
     $result = $conn->query($query);
 
     if (!$result) {
@@ -81,10 +91,9 @@ function getUsuarios() {
 
     $usuarios = [];
     while ($row = $result->fetch_assoc()) {
-        // Convertir id a int, pero mantener telefono y dni como string
+        // Convertir id a int, mantener telefono como string
         $row['id'] = (int)$row['id'];
         $row['telefono'] = (string)$row['telefono'];
-        $row['dni'] = (string)$row['dni'];
         $usuarios[] = $row;
     }
 
@@ -104,11 +113,10 @@ function createUsuario() {
     $nombre = $conn->real_escape_string($data['nombre']);
     $email = $conn->real_escape_string($data['email']);
     $telefono = $conn->real_escape_string($data['telefono'] ?? '');
-    $dni = $conn->real_escape_string($data['dni'] ?? '');
     $rol = $conn->real_escape_string($data['rol'] ?? 'operario');
     $password = md5($data['password']);
 
-    $query = "INSERT INTO usuarios (nombre, email, telefono, dni, rol, password) VALUES ('$nombre', '$email', '$telefono', '$dni', '$rol', '$password')";
+    $query = "INSERT INTO usuarios (nombre, email, telefono, rol, password) VALUES ('$nombre', '$email', '$telefono', '$rol', '$password')";
 
     if ($conn->query($query)) {
         http_response_code(201);
@@ -133,14 +141,12 @@ function updateUsuario() {
     $nombre = $conn->real_escape_string($data['nombre'] ?? '');
     $email = $conn->real_escape_string($data['email'] ?? '');
     $telefono = $conn->real_escape_string($data['telefono'] ?? '');
-    $dni = $conn->real_escape_string($data['dni'] ?? '');
     $rol = $conn->real_escape_string($data['rol'] ?? 'operario');
 
     $updateFields = [];
     if ($nombre) $updateFields[] = "nombre = '$nombre'";
     if ($email) $updateFields[] = "email = '$email'";
     if ($telefono) $updateFields[] = "telefono = '$telefono'";
-    if ($dni) $updateFields[] = "dni = '$dni'";
     if ($rol) $updateFields[] = "rol = '$rol'";
 
     if (empty($updateFields)) {

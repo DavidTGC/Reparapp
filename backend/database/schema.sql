@@ -11,14 +11,12 @@ CREATE TABLE usuarios (
     nombre VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     telefono VARCHAR(20),
-    dni VARCHAR(20) UNIQUE,
     rol ENUM('admin', 'operario') DEFAULT 'operario',
     password VARCHAR(255) NOT NULL,
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     activo BOOLEAN DEFAULT TRUE,
     INDEX idx_email (email),
-    INDEX idx_rol (rol),
-    INDEX idx_dni (dni)
+    INDEX idx_rol (rol)
 );
 
 -- ==========================================
@@ -27,19 +25,11 @@ CREATE TABLE usuarios (
 CREATE TABLE clientes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(255) NOT NULL,
-    email VARCHAR(255),
+    dni VARCHAR(9) UNIQUE NOT NULL,
     telefono VARCHAR(20) NOT NULL,
-    telefono_alternativo VARCHAR(20),
-    direccion VARCHAR(500),
-    ciudad VARCHAR(100),
-    codigo_postal VARCHAR(10),
-    provincia VARCHAR(100),
-    tipo_cliente ENUM('residencial', 'comercial', 'industrial') DEFAULT 'residencial',
-    notas LONGTEXT,
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_telefono (telefono),
-    INDEX idx_ciudad (ciudad)
+    INDEX idx_dni (dni)
 );
 
 -- ==========================================
@@ -99,12 +89,12 @@ INSERT INTO usuarios (nombre, email, telefono, rol, password) VALUES
 ('Antonio Moreno', 'antonio@reparapp.es', '654123456', 'operario', MD5('1234'));
 
 -- Clientes
-INSERT INTO clientes (nombre, email, telefono, telefono_alternativo, direccion, ciudad, codigo_postal, provincia, tipo_cliente) VALUES
-('Rafael Díaz Martínez', 'rafael.diaz@email.com', '956332145', '956332146', 'Calle Larga 45', 'Jerez de la Frontera', '11402', 'Cádiz', 'residencial'),
-('Isabel Ruiz Fernández', 'isabel.ruiz@email.com', '956334512', '', 'Avenida Alcalde Álvaro Domecq 78', 'Jerez de la Frontera', '11402', 'Cádiz', 'residencial'),
-('José María Gómez', 'josemaria@email.com', '956445789', '956445790', 'Calle Pizarro 23', 'Jerez de la Frontera', '11402', 'Cádiz', 'residencial'),
-('Carmen López Pérez', 'carmen.lopez@email.com', '956667234', '', 'Calle Nueva 56', 'Jerez de la Frontera', '11402', 'Cádiz', 'comercial'),
-('David García Sánchez', 'david.garcia@email.com', '956778234', '956778235', 'Calle Arcos 12', 'Jerez de la Frontera', '11402', 'Cádiz', 'residencial');
+INSERT INTO clientes (nombre, dni, telefono) VALUES
+('Rafael Díaz Martínez', '12345678A', '956332145'),
+('Isabel Ruiz Fernández', '87654321B', '956334512'),
+('José María Gómez', '11111111C', '956445789'),
+('Carmen López Pérez', '22222222D', '956667234'),
+('David García Sánchez', '33333333E', '956778234');
 
 -- Avisos
 INSERT INTO avisos (titulo, descripcion, id_cliente, direccion, ciudad, fecha, hora, estado, prioridad, tipo_servicio, id_operario, notas) VALUES

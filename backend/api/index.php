@@ -1,7 +1,7 @@
 <?php
 // index.php - Router principal para la API
 
-require_once '../config/database.php';
+require_once '../database/database.php';
 
 // Obtener la ruta solicitada
 $request = $_SERVER['REQUEST_URI'];
