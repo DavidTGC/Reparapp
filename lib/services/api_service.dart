@@ -10,11 +10,8 @@ class ApiService {
   // URL base de la API PHP
   // Para desarrollo web: asegúrate de que Flutter Web se sirve desde el mismo host/puerto que Apache
   // O cambia aquí a la dirección IP real de tu servidor (ej: http://192.168.1.100/reparapp/backend/api)
-  static const String apiBaseUrl = 'http://localhost/reparapp/backend/api';
-  
-  // URL base para recursos (imágenes, documentos)
-  // En web, esto debe ser accesible desde el mismo origen
-  static const String resourceBaseUrl = 'http://localhost/reparapp/backend';
+  static const String apiBaseUrl = 'https://doing-untreated-dweller.ngrok-free.dev/reparapp/backend/api';
+  static const String resourceBaseUrl = 'https://doing-untreated-dweller.ngrok-free.dev/reparapp/backend';
   
   // Timeout para las peticiones HTTP
   static const Duration timeoutDuration = Duration(seconds: 30);
